@@ -35,9 +35,11 @@ Leave that running and point your browser at the URLs that ngrok printed out. Th
 	Forwarding                    http://93b0feaf.ngrok.io -> localhost:8000
 	Forwarding                    https://93b0feaf.ngrok.io -> localhost:8000
 
-That last URL is the one you want. In this case it's `https://93b0feaf.ngrok.io` but your will be different.
+That last URL is the one you want. In this case it's `https://93b0feaf.ngrok.io` but yours will be different.
 
-When you load that URL in your browser, you should see the Boop page with a default landscape loaded.
+When you load that URL in your browser, you should see the Boop page with a default landscape from [racoon.media](https://racoon.media/).
+
+If you see an "Enter VR" button in the lower right hand side of the page then Boop has found a VR display and will use WebVR to render your model in your headset. If you have a headset and you don't see the button, you might need to set some flags to enable WebVR. Browser over to [webvr.rocks](https://webvr.rocks/) for help with that.
 
 Read the next section for how to load your own models!
 
