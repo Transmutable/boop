@@ -1,0 +1,64 @@
+# This is the settings file for Boop (https://github.com/transmutable/boop)
+
+# This will effect how the Boop web 3D scene is lit and how it loads your model  
+
+# Edit this file and then reload the page to see your changes
+
+
+
+# 	`background-color` will color the pixels that are not covered by your model
+
+background-color: #444444
+
+
+
+#	`model-obj` sets the relative path to the OBJ file
+#		like 'model/SomeModel.obj'
+#	The MTL file must be in the same directory and have the same name
+#		like 'model/SomeModel.mtl'
+
+model-obj: model/Landscape.obj
+
+
+
+# 	`model-translation` sets the x y z position of the model in meters
+
+model-translation: 0 0 0
+
+
+
+#	`ambient-light` sets the intensity (0 to 1) and hex color of the ambient light
+
+ambient-light: 0.9 #FFFFFF
+
+
+
+#	`directional-light` adds a light with intensity (0 to 1), a hex color
+#	the last 3 numbers set the x y z direction of the light in degrees
+#	You can add 0, 1, or more directional lights
+
+directional-light: 0.7 #FFFFFF 0 -1 -1
+
+#	`model-rotation` sets the x y z rotation of the model in degrees
+
+model-rotation: 0 0 0
+
+
+
+# 	`model-scale` sets the x y z scale of the model in meters
+
+model-scale: 1 1 1
+
+
+
+# `camera-translation` sets the x y z position of the camera in meters 
+
+camera-translation: 0 10 0
+
+
+
+#	`camera-rotation` sets the x y z rotation of the camera in degrees
+
+camera-rotation: 0 0 0
+
+
