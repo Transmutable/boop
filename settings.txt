@@ -8,7 +8,7 @@
 
 # 	`background-color` will color the pixels that are not covered by your model
 
-background-color: #444444
+background-color: #6666FF
 
 
 
@@ -20,41 +20,49 @@ background-color: #444444
 model-obj: model/Landscape.obj
 
 
+#	`model-glb` sets the relative path to a single glTF binary file
+#		like 'model/SomeModel.glb'
+
+# model-glb: model/AllInclusiveSet.glb
+
 
 # 	`model-translation` sets the x y z position of the model in meters
+# x is left-right, y is up-down, and z is back-forward
 
-model-translation: 0 0 0
+model-translation: 0 0 -10
 
 
+#	`ambient-light` sets the intensity (0 to 1) and hex color of the base lighting of each object
 
-#	`ambient-light` sets the intensity (0 to 1) and hex color of the ambient light
+ambient-light: 0.2 #FFFFFF
 
-ambient-light: 0.9 #FFFFFF
 
+#	An area light is a shape that emits light (use sparingly)
+#	area-light: <shape> <location: x, y, z> <rotation: x ,y ,z> <color: r, g, b,> <size: w, h> <intensity> <name>
+#	Only rectangular shape is currently supported
+
+# area-light: rectangle 2.627 8.581 2.966 0.000 0.000 0.000 256 256 256 8.000 4.000 80.0 Overhead Light
 
 
 #	`directional-light` adds a light with intensity (0 to 1), a hex color
 #	the last 3 numbers set the x y z direction of the light in degrees
-#	You can add 0, 1, or more directional lights
 
 directional-light: 0.7 #FFFFFF 0 -1 -1
 
 #	`model-rotation` sets the x y z rotation of the model in degrees
 
-model-rotation: 0 0 0
+model-rotation: 0 -90 0
 
 
 
 # 	`model-scale` sets the x y z scale of the model in meters
 
-model-scale: 1 1 1
-
+model-scale: 3 3 3
 
 
 # `camera-translation` sets the x y z position of the camera in meters 
 
-camera-translation: 0 10 0
-
+camera-translation: 0 0 0
 
 
 #	`camera-rotation` sets the x y z rotation of the camera in degrees

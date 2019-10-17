@@ -41,6 +41,8 @@
 		</style>
 
 		<script src="/libraries/three/three.js"></script>
+		<script src="/libraries/three/three-webvr.js"></script>
+		<script src="/libraries/three/shaders/three-rect-area-light-uniforms.js"></script>
 		<script src="/libraries/three/three-gltf-loader.js"></script>
 		<script src="/libraries/three/three-mtl-loader.js"></script>
 		<script src="/libraries/three/three-obj-loader.js"></script>
@@ -51,17 +53,19 @@
 
 		<script type="module">
 			import Boop from './libraries/boop.js'
-			const enterButton = document.getElementById('enter-vr-button')
+			
+			//const enterButton = document.getElementById('enter-vr-button')
 			window.boop = new Boop(display => {
 				if(display !== null){
-					enterButton.style['display'] = 'block'
+					//enterButton.style['display'] = 'block'
 				}
 			})
 			document.body.appendChild(boop.el)
-
+			/*
 			enterButton.addEventListener('click', ev => {
 				boop.start()
 			})
+			*/
 		</script>
 	</body>
 </html>

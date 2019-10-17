@@ -3,192 +3,47 @@ const DEGRESS_TO_RADIANS = (2 * Math.PI) / 360
 
 const Boop = class {
 	constructor(onDisplayCallback=null){
-		this._onDisplayCallback = onDisplayCallback
+		this._updateSize = this._updateSize.bind(this)
 		this._render = this._render.bind(this)
-		this._renderFlat = this._renderFlat.bind(this)
-		this._renderVR = this._renderVR.bind(this)
 
- 		this._vrDisplay = null
-		this._getVRDisplay()
-
-		// Render size
-		this._width = 1
-		this._height = 1
-
-		this._isStarted = false
-		this._vrFrameData = new VRFrameData()
-
-		this._camera = new THREE.PerspectiveCamera(45, 1, 0.5, 10000)
+		this._camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.5, 100)
 
 		this._scene = new THREE.Scene()
-		this._scene.matrixAutoUpdate = false
+		this._scene.add(this._camera)
 
 		this._renderer = new THREE.WebGLRenderer({
 			antialias: true
 		})
+		this._renderer.vr.enabled = true
 		this._renderer.domElement.setAttribute('class', 'webvr-display')
-		this._renderer.setClearColor(0x99DDff)
-		//this._renderer.shadowMap.enabled = true
-		//this._renderer.shadowMap.type = THREE.PCFShadowMap
+		this._renderer.setSize(window.innerWidth, window.innerHeight)
+		this._renderer.setAnimationLoop(this._render)
 
 		this._modelGroup = new THREE.Group()
 		this._modelGroup.name = 'ModelGroup'
 		this._scene.add(this._modelGroup)
 
-		window.addEventListener('vrdisplaypresentchange', ev => {
-			if (this._vrDisplay === null) return
-			if(this._vrDisplay.isPresenting){
-				console.log('Presenting')
-			} else {
-				console.log('No longer presenting')
-			}
-		})
+		THREE.RectAreaLightUniformsLib.init()
 
-		setTimeout(() => {
-			this._updateSize()
-			this._render()
-		}, 500)
+		document.body.appendChild(THREE.WEBVR.createButton(this._renderer))
+		window.addEventListener('resize', this._updateSize, false)
 
 		this._fetchConfiguration()
 	}
 
-	/**
-	@return {HTMLElement} the canvas element that displays the scene
-	*/
 	get el(){
 		return this._renderer.domElement
 	}
 
-	/**
-	@return {bool} true if the scene is being rendered in VR
-	*/
-	get isStarted() {
-		return this._isStarted
-	}
-
-	/**
-	Start rendering in VR
-	*/
-	start() {
-		if (this._isStarted) return Promise.reject('Already started')
-		if(this._vrDisplay === null){
-			return Promise.reject('No vr display was found')
-		}
-		this._isStarted = true
-		return new Promise((resolve, reject) => {
-			document.body.appendChild(this._renderer.domElement)
-			this._vrDisplay
-				.requestPresent([
-					{
-						source: this._renderer.domElement
-					}
-				])
-				.then(() => {
-					this._updateSize()
-					this._vrDisplay.requestAnimationFrame(this._render)
-					resolve()
-				})
-				.catch(err => {
-					this._isStarted = false
-					this._updateSize()
-					console.error('Error starting WebVR', err)
-					reject(err)
-				})
-		})
-	}
-
-	/**
-	Stop rendering in VR
-	*/
-	stop() {
-		if (this._isStarted === false) return Promise.resolve()
-		this._isStarted = false
-		this._updateSize()
-		if (this._vrDisplay.isPresenting === false) return Promise.resolve()
-		return this._vrDisplay.exitPresent()
-	}
-
-	async _getVRDisplay(){
-		let displays = await navigator.getVRDisplays()
-		displays = displays.filter(display => display.capabilities.canPresent)
-		if (displays.length > 0) {
-			this._vrDisplay = displays[0]
-		}
-		if(this._onDisplayCallback){
-			this._onDisplayCallback(this._vrDisplay)
-		}
-	}
-
 	_render() {
-		if(this._isStarted){
-			this._renderVR()
-		} else {
-			this._renderFlat()
-		}
-	}
-
-	_renderFlat(){
-		if(this._isStarted) return
-		window.requestAnimationFrame(this._renderFlat)
-		this._renderer.clear()
-		this._renderer.setViewport(0, 0, this._width, this._height)
-		this._scene.updateMatrixWorld(true)
 		this._renderer.render(this._scene, this._camera)
-	}
-
-	_renderVR(){
-		if (this._isStarted === false) return
-		if (this._vrDisplay === null) return
-		if (this._vrDisplay.isPresenting === false) return
-		this._vrDisplay.requestAnimationFrame(this._renderVR)
-
-		this._vrDisplay.getFrameData(this._vrFrameData)
-
-		this._renderer.autoClear = false
-		this._scene.matrixAutoUpdate = false
-
-		// The view is assumed to be full-window in VR because the canvas element fills the entire HMD screen[s]
-		this._renderer.clear()
-		this._renderer.setViewport(0, 0, this._width * 0.5, this._height)
-
-		// Render left eye
-		this._camera.projectionMatrix.fromArray(this._vrFrameData.leftProjectionMatrix)
-		this._scene.matrix.fromArray(this._vrFrameData.leftViewMatrix)
-		this._scene.updateMatrixWorld(true)
-		this._renderer.render(this._scene, this._camera)
-
-		// Prep for right eye
-		this._renderer.clearDepth()
-		this._renderer.setViewport(this._width * 0.5, 0, this._width * 0.5, this._height)
-
-		// Render right eye
-		this._camera.projectionMatrix.fromArray(this._vrFrameData.rightProjectionMatrix)
-		this._scene.matrix.fromArray(this._vrFrameData.rightViewMatrix)
-		this._scene.updateMatrixWorld(true)
-		this._renderer.render(this._scene, this._camera)
-
-		this._vrDisplay.submitFrame()
 	}
 
 	_updateSize() {
-		if (this._isStarted){
-			// VR mode
-			const eyeParams = this._vrDisplay.getEyeParameters('left')
-			this._width = eyeParams.renderWidth * 2
-			this._height = eyeParams.renderHeight
-			this._renderer.setPixelRatio(1)
-			this._camera.aspect = this._width / this._height
-			this._camera.updateProjectionMatrix()
-			this._renderer.setSize(this._width, this._height, false)
-		} else {
-			// flat mode
-			this._width = this.el.clientWidth
-			this._height = this.el.clientHeight
-			this._renderer.setPixelRatio(window.devicePixelRatio)
-			this._camera.aspect = this._width / this._height
-			this._camera.updateProjectionMatrix()
-			this._renderer.setSize(this._width, this._height, false)
-		}
+		this._camera.aspect = window.innerWidth / window.innerHeight
+		this._camera.updateProjectionMatrix()
+		this._renderer.setSize(window.innerWidth, window.innerHeight)
+		this._renderer.setPixelRatio(window.devicePixelRatio)
 	}
 
 	async _fetchConfiguration(){
@@ -209,6 +64,13 @@ const Boop = class {
 				case 'background-color':
 					this._renderer.setClearColor(new THREE.Color(value))
 					break
+				case 'model-glb':
+					this._loadGLTF(value).then(model => {
+						this._modelGroup.add(model)
+					}).catch(err => {
+						console.error('Could not load glTF', err)
+					})
+					break					
 				case 'model-obj':
 					this._loadOBJ(value).then(obj =>{
 						this._modelGroup.add(obj)
@@ -244,6 +106,39 @@ const Boop = class {
 						ambientIntensity
 					))
 					break
+				case 'area-light':
+					// shape location(x y z) euler(x y z) color(r g b) size(w, h) intensity name
+					const areaLightValueTokens = value.split(' ')
+					const areaShape = areaLightValueTokens[0]
+					const areaLocation = [
+						_parseNumber(areaLightValueTokens[1]),
+						_parseNumber(areaLightValueTokens[2]),
+						_parseNumber(areaLightValueTokens[3])
+					]
+					const areaEuler = [
+						_parseNumber(areaLightValueTokens[4]),
+						_parseNumber(areaLightValueTokens[5]),
+						_parseNumber(areaLightValueTokens[6])
+					]
+					const areaColor = [
+						_parseNumber(areaLightValueTokens[7]),
+						_parseNumber(areaLightValueTokens[8]),
+						_parseNumber(areaLightValueTokens[9])
+					]
+					const areaWidth = areaLightValueTokens[10]
+					const areaHeight = areaLightValueTokens[11]
+					const areaIntensity = _parseNumber(areaLightValueTokens[12])
+					const areaName = areaLightValueTokens.slice(13, areaLightValueTokens.length).join(' ')
+
+					const rectAreaLight = new THREE.RectAreaLight(
+						new THREE.Color(`rgb(${areaColor[0]}, ${areaColor[1]}, ${areaColor[2]})`),
+						areaIntensity, areaWidth, areaHeight
+					)
+					rectAreaLight.name = areaName
+					rectAreaLight.position.set(...areaLocation)
+					rectAreaLight.quaternion.setFromEuler(new THREE.Euler(...areaEuler))
+					this._scene.add(rectAreaLight)
+					break
 				case 'directional-light':
 					const valueTokens = value.split(' ')
 					const intensity = _parseNumber(valueTokens[0])
@@ -267,7 +162,7 @@ const Boop = class {
 		const mtlPath = baseURL + mtlName
 
 		return new Promise((resolve, reject) => {
-			mtlLoader.setTexturePath(baseURL)
+			//mtlLoader.setPath(baseURL)
 			mtlLoader.load(
 				mtlPath,
 				materials => {
@@ -289,6 +184,26 @@ const Boop = class {
 				() => {},
 				(...params) => {
 					console.error('Failed to load mtl', ...params)
+					reject(...params)
+				}
+			)
+		})
+	}
+
+	_loadGLTF(gltfPath) {
+		const fileName = gltfPath.split('/')[gltfPath.split('/').length - 1]
+		const baseURL = gltfPath.substring(0, gltfPath.length - fileName.length)
+		console.log(fileName, baseURL)
+		return new Promise((resolve, reject) => {
+			let loader = new THREE.GLTFLoader().setPath(baseURL)
+			gltfLoader.load(
+				gltfPath,
+				gltf => {
+					gltf.scene.name = 'GLTF'
+					resolve(gltf.scene)
+				},
+				() => {},
+				(...params) => {
 					reject(...params)
 				}
 			)
@@ -321,6 +236,7 @@ const _parseNumber = function(str){
 
 export default Boop
 
+const gltfLoader = new THREE.GLTFLoader()
 const mtlLoader = new THREE.MTLLoader()
 const objLoader = new THREE.OBJLoader()
 
